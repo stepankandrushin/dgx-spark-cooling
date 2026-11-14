@@ -3,8 +3,8 @@
 The fan floor gives a substantial measured temperature reduction in our sustained
 decode test. It is also the most involved method: the pinned driver needs EC
 3.5.8, whose idle fan-stop defect needs a workaround. Read the whole procedure
-before changing firmware. If you prefer current stock firmware, use placement
-and the clock cap and keep the stock fan controller.
+before changing firmware. If you prefer current stock firmware, use the clock
+cap and keep the stock fan controller.
 
 ## What the numbers mean
 

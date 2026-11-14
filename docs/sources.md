@@ -29,12 +29,6 @@ own; our numbers come from our separate measurements. We do not adopt its broad
 overheating explanations or claim that our machines suffered the shutdowns
 described there.
 
-## Placement
-
-[NVIDIA's hardware guide](https://docs.nvidia.com/dgx/dgx-spark/hardware.html)
-provides the operating environment specifications. The AC relocation itself comes
-from our experiment records, with no isolated temperature delta.
-
 ## Physical modifications and design
 
 The cover and enclosure guides come from two demonstration videos by the owner:
@@ -68,6 +62,6 @@ confirms `local-install FILE [DEVICE-ID|GUID]`.
 ## Our measurements
 
 The [result tables](results.md) and the [CSV files](../results/) are transcribed
-aggregates of the placement, clock comparison, fan sweep and persistence records.
+aggregates of the clock comparison, fan sweep and persistence records.
 They contain no machine names, serial numbers, private addresses or service
 endpoints. The raw sample logs are not published.

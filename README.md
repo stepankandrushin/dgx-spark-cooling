@@ -2,9 +2,9 @@
 
 Our NVIDIA DGX Spark cooling setup starts with removing the decorative bottom
 cover and adding an ABS enclosure I designed for two Sparks, with 120 mm fans.
-It also uses air-conditioned placement, a 2,200 MHz GPU clock cap, and a higher
-minimum speed for the internal fans. This repository includes the printable
-design, assembly notes, measured tradeoffs, verification and undo steps.
+It also uses a 2,200 MHz GPU clock cap and a higher minimum speed for the
+internal fans. This repository includes the printable design, assembly notes,
+measured tradeoffs, verification and undo steps.
 
 ![The printed two-Spark enclosure](3d-print/DGX_Spark_Duo_photo_01.jpg)
 
@@ -24,7 +24,6 @@ The original four were not thermally throttling or shutting down in our tests.
 | --- | --- | --- | --- |
 | Remove the decorative bottom plastic cover | Opens the underside around the NVMe area to moving air; demonstrated on camera, with no isolated temperature measurement | Exposed underside needs clearance and careful handling; a temporary external cooler was also tried | [Bottom cover](docs/bottom-cover.md) |
 | Add the ABS two-Spark enclosure and external fans | Owner-designed, printed body and cap, with open spacing and 120 mm fan mounts | Needs suitable fan power/control and assembly; no isolated cooling measurement | [Printed enclosure](docs/printed-enclosure.md) |
-| Move the machines under air conditioning | Used, but no isolated before/after temperature measurement | Room cooling and placement matter; no measured benefit claimed | [Placement](docs/placement.md) |
 | Cap GPU graphics clocks at 2,200 MHz | GPU peaks 74–77 → 67–69 °C; busy GPU power 44.8–49.1 → 28.5–31.1 W | Single-request decode about 1–2% slower; sixteen-stream throughput 7.6% lower | [GPU clock cap](docs/gpu-clock-cap.md) |
 | Hold a 9,000 RPM fan floor | With the clock cap already active: mean GPU 60.0 → 52.7 °C; NVMe 48.6 → 42.9 °C | More noise; requires a specific older EC firmware and an idle-fan workaround | [Fan floor](docs/fan-floor.md) |
 
@@ -37,7 +36,7 @@ together** into a combined stock-to-final improvement. See the full
 1. Read the [bottom-cover guide](docs/bottom-cover.md) and
    [ABS enclosure guide](docs/printed-enclosure.md), including the printable files.
    Record a baseline, then compare each physical change separately.
-2. Check [placement](docs/placement.md) and try the [clock cap](docs/gpu-clock-cap.md).
+2. Try the [clock cap](docs/gpu-clock-cap.md).
    The clock cap needs no firmware downgrade.
    Compare temperatures, tokens per second and prefill time before keeping it.
 3. Consider the [fan floor](docs/fan-floor.md) only after reading its compatibility,
@@ -60,7 +59,7 @@ Store longer runs in the git-ignored `measurements/` directory.
 
 ## What is included
 
-- Five method guides, including the temporary external-cooler trial in the cover guide.
+- Four method guides, including the temporary external-cooler trial in the cover guide.
 - Two original STL files, a design preview, a dimensioned section drawing and five case photos.
 - A checked fan wrapper, systemd units, a read-only CSV sampler and offline tests.
 - [Published measurement tables](results/) transcribed from the original experiment records.

@@ -24,12 +24,6 @@ These demonstrations do not establish which physical configuration was present
 in every earlier benchmark. Do not call the reported software comparisons a
 stock-case versus printed-case test.
 
-## Air-conditioned placement
-
-The move under air conditioning is recorded. There is no isolated A/B comparison,
-ambient measurement or temperature delta attributable to it. Later two- and
-four-machine GLM runs are different workloads, not a placement experiment.
-
 ## GPU clock cap
 
 Each comparison run had 91 requests and no unrelated API traffic. After an idle
@@ -113,7 +107,7 @@ No acoustic or drive-lifetime measurements were made.
 
 - A combined temperature improvement from adding the two separate tests.
 - That our stock machines overheated, or that clock capping is free performance.
-- That AC placement, cover removal, the temporary cooler or the printed case has
-  an isolated measured benefit in these records.
+- That cover removal, the temporary cooler or the printed case has an isolated
+  measured benefit in these records.
 - That higher fans increase throughput, prove longer SSD life or are silent.
 - That the older EC works safely without its idle-fan workaround.
