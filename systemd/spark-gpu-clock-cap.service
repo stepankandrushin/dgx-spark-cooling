@@ -1,0 +1,14 @@
+[Unit]
+Description=Cap the GB10 GPU clock at 2200 MHz
+After=nvidia-persistenced.service
+Wants=nvidia-persistenced.service
+Before=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/nvidia-smi -lgc 300,2200
+ExecStop=/usr/bin/nvidia-smi -rgc
+
+[Install]
+WantedBy=multi-user.target

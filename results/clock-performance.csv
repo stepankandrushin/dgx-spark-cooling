@@ -1,0 +1,7 @@
+metric,unit,stock,capped_2200
+prose_decode,tokens_per_second,64.2,63.4
+code_decode,tokens_per_second,121.3,119.1
+json_decode,tokens_per_second,94.4,93.1
+concurrent_4,tokens_per_second,147.7,145.1
+concurrent_16,tokens_per_second,239.2,221.0
+prefill_100k,seconds,32.55,33.42

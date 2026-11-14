@@ -1,0 +1,11 @@
+next-prompts/
+__pycache__/
+*.pyc
+.venv/
+measurements/
+secrets/
+*.priv
+*.der
+# Reading cache; original publishers retain their rights.
+sources/*/
+firmware/

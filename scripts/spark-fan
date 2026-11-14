@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+"""DGX Spark: checked controls for the dgx_ec_fan_control RPM-floor driver.
+
+set N selects N percent of the 13,500 RPM common floor, rounded up to a
+supported step. This is a MINIMUM, not fixed PWM or equal fan percentages.
+Firmware remains free to cool harder; fan 1 saturates at 9,000 RPM.
+No stock ACPI Fan cooling_device is ever written. See docs/fan-floor.md.
+"""
+
+import argparse
+import datetime
+import fcntl
+import os
+import json
+import stat
+from pathlib import Path
+import socket
+import subprocess
+import sys
+import time
+
+
+THERMAL = Path('/sys/class/thermal')
+HWMON = Path('/sys/class/hwmon')
+EC_GUID = '3d13c989-e6a8-4ead-95ee-921f09868f65'
+EC_VERSION = 0x03000508
+DRIVER = 'dgx_ec_fan_control'
+DEVICE_TYPE = 'dgx_ec_fan_floor'
+MAX_PLAUSIBLE_RPM = 30000  # Same telemetry bound as the unchanged driver.
+FLOORS = (0, 2700, 3600, 4500, 5400, 6300, 7200, 8100, 9000,
+          10125, 11250, 12375, 13500)
+IDENTITY = Path('/etc/dgx-spark-cooling/identity.json')
+
+
+def check_identity():
+    info = IDENTITY.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise RuntimeError('Identity file must be a root-owned regular file, not group/world writable')
+    identity = json.loads(IDENTITY.read_text(encoding='utf-8'))
+    if not isinstance(identity, dict):
+        raise RuntimeError('Identity must be a JSON object')
+    serial = read('/sys/class/dmi/id/product_serial')
+    if (not serial or not identity.get('hostname') or not identity.get('serial')
+            or identity['hostname'] != socket.gethostname() or identity['serial'] != serial):
+        raise RuntimeError('Hostname/serial does not match the explicitly registered Spark')
+
+
+def read(path):
+    return Path(path).read_text(encoding='ascii').strip()
+
+
+def ec_version():
+    for entry in Path('/sys/firmware/efi/esrt/entries').glob('entry*'):
+        if read(entry / 'fw_class') == EC_GUID:
+            return int(read(entry / 'fw_version'), 0)
+    return None
+
+
+def cooling_device():
+    matches = [p for p in THERMAL.glob('cooling_device*')
+               if read(p / 'type') == DEVICE_TYPE]
+    if not matches:
+        return None
+    if len(matches) != 1 or int(read(matches[0] / 'max_state')) != 12:
+        raise RuntimeError('Unexpected driver cooling-device contract')
+    return matches[0]
+
+
+def current_state(device):
+    state = int(read(device / 'cur_state'))
+    if not 0 <= state <= 12:
+        raise RuntimeError(f'Invalid driver state: {state}')
+    return state
+
+
+def fan_readings():
+    values = []
+    for hw in sorted(HWMON.glob('hwmon*')):
+        if read(hw / 'name') == 'acpi_fan':
+            values.append((str((hw / 'device').resolve()),
+                           int(read(hw / 'fan1_input'))))
+    return sorted(values)
+
+
+def driver_fan_readings():
+    matches = [hw for hw in HWMON.glob('hwmon*')
+               if read(hw / 'name') == 'dgx_ec_fan']
+    if len(matches) != 1:
+        raise RuntimeError('Expected exactly one driver fan telemetry device')
+    values = [int(read(matches[0] / f'fan{index}_input')) for index in (1, 2)]
+    if any(not 0 <= rpm <= MAX_PLAUSIBLE_RPM for rpm in values):
+        raise RuntimeError('Invalid driver fan RPM telemetry')
+    return values
+
+
+def check_ec_link():
+    before = read('/sys/class/rtc/rtc0/time')
+    time.sleep(1.2)
+    after = read('/sys/class/rtc/rtc0/time')
+    if before == after:
+        raise RuntimeError(f'EC clock is frozen; {socket.gethostname()} needs a physical power cycle')
+    fans = fan_readings()
+    if len(fans) != 2 or any(not 0 <= rpm <= MAX_PLAUSIBLE_RPM for _, rpm in fans):
+        raise RuntimeError('Both ACPI fan RPM readings must be valid')
+    device = cooling_device()
+    if device is not None:
+        current_state(device)  # Fresh authenticated EC floor read, not a cached mode.
+        driver_fan_readings()
+
+
+def temperatures():
+    values = []
+    for zone in sorted(THERMAL.glob('thermal_zone*')):
+        path = zone / 'device/path'
+        label = read(path) if path.exists() else zone.name
+        value = int(read(zone / 'temp')) / 1000
+        if not 0 < value < 150:
+            raise RuntimeError(f'Invalid temperature from {label}: {value}')
+        values.append((label, value))
+    if not values:
+        raise RuntimeError('No thermal-zone readings')
+    return values
+
+
+def status(allow_stopped=False):
+    print(f'{socket.gethostname()}  {datetime.datetime.now().astimezone().isoformat(timespec="seconds")}')
+    version = ec_version()
+    print('EC firmware: ' + (f'0x{version:08x}' if version is not None else 'unavailable'))
+    device = cooling_device()
+    if device:
+        state = current_state(device)
+        if state == 0:
+            print('Mode: automatic (driver confirms floor unset / 0xffff)')
+        else:
+            print(f'Mode: minimum {FLOORS[state]} RPM, state {state}/12')
+    else:
+        print('Mode: driver not active; EC floor cannot be verified')
+    healthy = True
+    try:
+        check_ec_link()
+        print('EC link: clock advances; fan telemetry readable')
+    except (OSError, ValueError, RuntimeError) as exc:
+        healthy = False
+        print(f'EC link: FAULT — {exc}')
+    fans = fan_readings()
+    driver_rpm = driver_fan_readings() if healthy and device is not None else []
+    stopped = any(rpm == 0 for _, rpm in fans) or any(rpm == 0 for rpm in driver_rpm)
+    for index, (_, rpm) in enumerate(fans, 1):
+        print(f'Fan {index}: {rpm} RPM' + ('' if healthy else ' (unreliable while EC link is faulty)'))
+    if healthy and stopped:
+        print('Fan condition: STOPPED — zero RPM is not an EC transport failure')
+        if device is not None:
+            print('Driver fan telemetry: ' + '/'.join(map(str, driver_rpm)) + ' RPM')
+            if state == 0:
+                print('Automatic floor is unset; check the EC 3.5.8 idle-fan workaround')
+    for label, value in temperatures():
+        print(f'{label}: {value:.1f} C')
+    gpu = subprocess.run(
+        ['nvidia-smi', '--query-gpu=temperature.gpu', '--format=csv,noheader,nounits'],
+        capture_output=True, text=True, timeout=10)
+    print('GPU: ' + (gpu.stdout.strip() + ' C' if gpu.returncode == 0 else 'unavailable'))
+    for hw in sorted(HWMON.glob('hwmon*')):
+        if read(hw / 'name') == 'nvme':
+            for sensor in sorted(hw.glob('temp*_input')):
+                label_file = sensor.with_name(sensor.name.replace('_input', '_label'))
+                label = read(label_file) if label_file.exists() else sensor.stem
+                print(f'NVMe {label}: {int(read(sensor))/1000:.1f} C')
+    return healthy and (allow_stopped or not stopped)
+
+
+def state_for_percent(percent):
+    target = FLOORS[-1] * percent / 100
+    return next(i for i, floor in enumerate(FLOORS) if i and floor >= target)
+
+
+def write_state(device, state):
+    (device / 'cur_state').write_text(f'{state}\n', encoding='ascii')
+    observed = current_state(device)
+    if observed != state:
+        raise RuntimeError(f'State readback mismatch: requested {state}, read {observed}')
+
+
+def change(state):
+    if os.geteuid() != 0:
+        raise RuntimeError('Run this command as root')
+    check_identity()
+    with open('/run/lock/dgx-spark-cooling-fan.lock', 'w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if ec_version() != EC_VERSION:
+            raise RuntimeError('Requires EC 3.5.8; firmware is never changed by this command')
+        check_ec_link()
+        temperatures()
+        device = cooling_device()
+        if device is None:
+            subprocess.run(['modprobe', DRIVER], check=True, timeout=15)
+            device = cooling_device()
+        if device is None:
+            raise RuntimeError('Driver rejected the firmware; inspect journalctl -k. No speed was set')
+        fans = fan_readings()
+        driver_rpm = driver_fan_readings()
+        if state and (any(rpm == 0 for _, rpm in fans) or any(rpm == 0 for rpm in driver_rpm)):
+            if (len(fans) != 2 or not all(rpm == 0 for _, rpm in fans)
+                    or current_state(device) != 0 or driver_rpm != [0, 0]):
+                raise RuntimeError('Stopped-fan readings do not match verified automatic mode; '
+                                   'refusing an unexplained fan fault')
+            print('Both fans stopped under automatic; requesting a floor through the validated driver')
+        print('Before:')
+        if not status(allow_stopped=True):
+            raise RuntimeError('EC link failed before the requested change')
+        if state:
+            floor = FLOORS[state]
+            print(f'Request: common minimum {floor} RPM (state {state}/12); '
+                  f'nominal fan targets {min(floor, 9000)}/{min(floor, 13500)} RPM')
+        else:
+            print('Request: automatic (unset the RPM floor, not stop the fans)')
+        try:
+            write_state(device, state)
+            time.sleep(5)
+            print('After:')
+            if not status():
+                raise RuntimeError('Cooling check failed after the change; inspect EC and fan status')
+        except BaseException:
+            try:
+                write_state(device, 0)
+                print('Automatic floor restored after failure', file=sys.stderr)
+            except BaseException as restore_error:
+                print(f'AUTOMATIC RESTORE FAILED: {restore_error}', file=sys.stderr)
+            raise
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest='command', required=True)
+    setter = commands.add_parser('set', help='set a minimum: 1–100 percent of 13,500 RPM, rounded up')
+    setter.add_argument('percent', type=int, choices=range(1, 101), metavar='N')
+    commands.add_parser('auto', help='restore the EC automatic curve')
+    commands.add_parser('status', help='read fan state, EC health, temperatures and RPM')
+    commands.add_parser('levels', help='show supported floors and their percentages')
+    args = parser.parse_args()
+    try:
+        if args.command == 'levels':
+            print('State  Common floor  Percent of 13,500 RPM')
+            for state, floor in enumerate(FLOORS[1:], 1):
+                print(f'{state:5}  {floor:8} RPM  {floor/135:.1f}%')
+        elif args.command == 'status':
+            return 0 if status() else 69
+        else:
+            change(0 if args.command == 'auto' else state_for_percent(args.percent))
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+        print(f'spark-fan: {exc}', file=sys.stderr)
+        return 69
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
