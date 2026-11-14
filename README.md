@@ -18,7 +18,7 @@ The measurements come from four Sparks running inference. The same clock and fan
 settings are installed on six, but six-machine performance has not been measured.
 The original four were not thermally throttling or shutting down in our tests.
 
-## Choose a method
+## The methods we use
 
 | Method | What we observed | Tradeoff | Instructions |
 | --- | --- | --- | --- |
