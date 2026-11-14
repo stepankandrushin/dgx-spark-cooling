@@ -1,49 +1,74 @@
 # Cap the GPU graphics clock at 2,200 MHz
 
-This is the simplest software change we kept. It reduces the upper graphics clock
-while leaving the lower end at 300 MHz. It is not a 2,200 MHz fixed-frequency lock,
-a CPU cap or a board power limit.
+This is the simplest change we made, and the easiest to undo. The GPU can boost
+as high as 3,003 MHz. In our test, the clocks above 2,200 MHz used a lot of
+power for very little extra speed. The cap stops the GPU at 2,200 MHz. It can
+still drop as low as 300 MHz when there's little to do.
 
-## Measure the baseline
+It doesn't lock the GPU at a fixed 2,200 MHz. It also doesn't touch the CPU or
+set a board power limit.
 
-On the Spark, record `uname -r`, `nvidia-smi`, `fwupdmgr get-devices` and your model,
-precision, context sizes and concurrency. Confirm that no earlier clock-cap service
-or other tuning tool will change settings during the comparison.
+## What it changed for us
+
+On four Sparks under inference load:
+
+- GPU peak temperatures fell from 74–77 °C to 67–69 °C.
+- Busy GPU power fell from 44.8–49.1 W to 28.5–31.1 W. That's the GPU's own
+  reading, not power at the wall.
+- Average temperatures during the hot benchmark fell 2.2–6.8 °C in the CPU
+  zones and 1.0–3.9 °C on the NVMe drives.
+- A single request generated text about 1–2% slower. Sixteen requests at once
+  went from 239.2 to 221.0 tokens/s, 7.6% less. Long prompts took about 2–5%
+  longer to process.
+
+One machine's CPU peak went up slightly even though its average fell. The full
+table is in [results](results.md#gpu-clock-cap).
+
+## Measure before you change it
+
+Record what you're running so you can repeat it exactly: `uname -r`,
+`nvidia-smi`, `fwupdmgr get-devices`, and your model, precision, context sizes
+and concurrency. Make sure no other clock-cap service or tuning tool will change
+settings in the middle of the test.
+
+Start the sampler in one terminal and your usual inference benchmark in another:
 
 ```sh
 mkdir -p measurements
 python3 scripts/thermal-sample.py --duration 1200 --interval 2 > measurements/clock-stock.csv
 ```
 
-Run this in a second terminal while executing your usual inference benchmark.
-Our experiment used an idle baseline, roughly seven minutes of warm-up, then hot
-decode, concurrent requests and long-prefill tests. Record throughput separately;
-the temperature sampler does not generate inference or measure tokens per second.
+We let the machines sit idle first, warmed them up with about seven minutes of
+inference, then ran decode, concurrent-request and long-prompt tests while they
+were hot. The sampler only records temperatures, so log tokens per second from
+your benchmark separately.
 
-## Apply, cool down, repeat
+## Apply it, let it cool, repeat
 
 ```sh
 sudo nvidia-smi -lgc 300,2200
 ```
 
-Let the machines return to within approximately 1 °C of their initial idle
-temperatures, then repeat the identical warm-up and benchmark with a new CSV.
-Keep room conditions and all other tuning unchanged. For a cluster, apply the
-same setting to every participating Spark and collect each machine's readings.
+Wait until the machines are back within about 1 °C of where they started at
+idle. Then run the same warm-up and benchmark again into a new CSV. Change
+nothing else. With several Sparks, apply the cap on all of them and collect
+readings from each.
 
-During load, inspect:
+While the load runs, watch the clocks:
 
 ```sh
 nvidia-smi --query-gpu=temperature.gpu,clocks.gr,power.draw,utilization.gpu,clocks_event_reasons.active --format=csv -l 2
 ```
 
-Our busy clocks held around 2,177–2,190 MHz. Idle still sometimes showed 2,405 MHz,
-and the advertised maximum stayed 3,003 MHz. Neither idle reading proves the cap failed.
-Inspect sustained loaded readings and the command's success status.
+Under load ours held around 2,177–2,190 MHz. At idle `nvidia-smi` sometimes still
+showed 2,405 MHz, and it still lists 3,003 MHz as the maximum. Neither means the
+cap failed. Judge it by the clocks under sustained load and by whether the
+command succeeded.
 
-## Keep it across reboots
+## Keep it after a reboot
 
-After comparing results, install the supplied unit from the repository root:
+The cap is lost on reboot. If you want to keep it, install the systemd unit from
+the repository root:
 
 ```sh
 sudo install -m 0644 systemd/spark-gpu-clock-cap.service /etc/systemd/system/
@@ -52,21 +77,11 @@ sudo systemctl enable --now spark-gpu-clock-cap.service
 systemctl status spark-gpu-clock-cap.service --no-pager
 ```
 
-The unit runs after nvidia-persistenced and before Docker. Ordering does not make
-your inference service depend on successful capping; check the unit and loaded
-clocks after reboot before resuming an unattended workload. Stop jobs and reboot
-at a suitable time, then repeat both checks. A successful oneshot normally shows
-`active (exited)`.
-
-## What changed in our test
-
-Four-machine GPU peak ranges fell from 74–77 to 67–69 °C. Busy GPU power fell from
-44.8–49.1 to 28.5–31.1 W; this is GPU telemetry, not whole-machine wall power.
-CPU-zone hot means fell 2.2–6.8 °C and NVMe hot means 1.0–3.9 °C.
-
-Single-request decode slowed about 1–2%. Sixteen concurrent requests fell from
-239.2 to 221.0 tokens/s, or 7.6%. Prefill took about 2–5% longer.
-One CPU peak increased despite its mean falling. See [results](results.md) for scope.
+It runs once at boot, after nvidia-persistenced and before Docker. When it has
+worked, the status shows `active (exited)`. Your inference service still starts
+even if the cap fails, so after a reboot check the unit and the loaded clocks
+before you leave the machine unattended. Reboot once at a convenient time and
+check both.
 
 ## Undo
 
@@ -75,9 +90,9 @@ sudo systemctl disable --now spark-gpu-clock-cap.service
 sudo nvidia-smi -rgc
 ```
 
-The unit's stop command resets graphics clocks; the second command also covers
-a cap applied manually before installing the unit. Verify stock behavior under load.
-If you had a different intentional clock policy, restore that policy separately.
+Stopping the unit resets the clocks. The second command also clears a cap you set
+by hand before installing the unit. Check the clocks under load afterwards. If you
+had your own clock settings before, put those back separately.
 
-The command semantics come from [NVIDIA's nvidia-smi manual](https://docs.nvidia.com/deploy/nvidia-smi/index.html).
-The [source index](sources.md#clock-cap) also credits the article that prompted our test.
+The commands are documented in [NVIDIA's nvidia-smi manual](https://docs.nvidia.com/deploy/nvidia-smi/index.html).
+The article that got us to try this is credited in the [source index](sources.md#clock-cap).

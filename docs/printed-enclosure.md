@@ -1,85 +1,94 @@
 # ABS enclosure for two DGX Sparks
 
-This is the owner's two-piece design, printed in ABS, for holding two Sparks with
-space for air to pass around them. A 120 mm fan mounts to the body. The cap closes
-the other end and can hold a second fan. The demonstration shows the printed
-parts and fan placement; it does not show a completed loaded thermal comparison.
+I designed this enclosure to hold two Sparks with a fan pushing air past both of
+them. It prints in two ABS parts. The body holds the machines and a 120 mm fan.
+The cap closes the other end and can take a second fan. Each Spark sits on rails
+along its edges, so air passes above, between and below the machines. That
+includes the undersides, if you've [removed the bottom covers](bottom-cover.md).
+
+We haven't measured this enclosure on its own, so there's no before/after number
+for it yet.
 
 ![Two-piece ABS enclosure](../3d-print/DGX_Spark_Duo_photo_02.jpg)
 
-## Files and parts
+## What you need
 
-- [Body STL](../3d-print/DGX_Spark_Duo_body.stl), one.
-- [Cap STL](../3d-print/DGX_Spark_Duo_cap.stl), one for the closed arrangement.
-- [Design preview](../3d-print/DGX_Spark_Duo_preview.png) and
-  [dimensioned section](../3d-print/DGX_Spark_Plan.png).
-- One 120 mm fan, optionally a second; the demonstrated model is ARCTIC P12 Pro PST.
-- Suitable fan mounting hardware, external power supply and fan controller.
-  The recording does not identify a completed wiring arrangement or screw length.
+- [Body STL](../3d-print/DGX_Spark_Duo_body.stl), printed once.
+- [Cap STL](../3d-print/DGX_Spark_Duo_cap.stl), printed once if you want the
+  closed version.
+- One 120 mm fan, plus a second one if you like. I use the ARCTIC P12 Pro PST.
+- Screws to mount the fan, a 12 V supply and a fan controller. The fan doesn't
+  run from USB, and you shouldn't count on a fan header inside the Spark.
 
-All photos and the four design files are together in [3d-print/](../3d-print/README.md).
-The [print notes](../3d-print/README.md#print-settings) record the saved ABS slicer settings.
+The [design preview](../3d-print/DGX_Spark_Duo_preview.png), the
+[section drawing](../3d-print/DGX_Spark_Plan.png), the photos and the
+[print settings](../3d-print/README.md#print-settings) are all in
+[3d-print/](../3d-print/README.md).
 
-## How the airflow path is arranged
+## How the air flows
 
 ![Section through the two computers](../3d-print/DGX_Spark_Plan.png)
 
-The section drawing specifies 12 mm above the upper Spark, an open 18 mm gap
-between them, and 12 mm below the lower Spark. Narrow rails overlap each lower
-edge by 5 mm. There is no solid middle shelf touching the broad underside of the
-upper machine. A front baffle limits air bypassing the intended route; the
-openings in the ends accommodate the fans and cables.
+The drawing shows 12 mm of space above the upper Spark, an open 18 mm gap
+between the two, and 12 mm below the lower one. Narrow rails hold each machine
+by its lower edges, with 5 mm of overlap. There is deliberately no shelf under
+the upper Spark, so air can reach its whole underside. A baffle at the front
+keeps air from going around the machines instead of past them. The openings at
+the ends are for the fans and cables.
 
-These are design dimensions, not measured clearances of every print. Check your
-actual fit before loading the enclosure. The green rail highlights in the drawing
-are explanatory; the whole body prints in one material.
+These are design dimensions. Your print can come out slightly different, so
+check the fit before you put the computers in. The green rails in the drawing
+are only highlighted. The whole body is one material.
 
 ## Assemble
 
-1. Print the body and optional cap in ABS; inspect them for cracks, warped rails
-   and rough edges. Remove brim material and confirm the cap fits the empty body.
-2. Dry-fit the 120 mm fan. Choose mounting screws that secure it without reaching
-   a computer or damaging the printed wall. Secure cables clear of the blades.
-3. Shut both Sparks down and disconnect them. If following the
-   [bottom-cover method](bottom-cover.md), remove only the decorative underside
-   panels and keep them for restoration.
-4. Fit the machines onto the intended edge supports without forcing them. Check
-   the open gap, clearance around the exposed underside and access to ports.
-   Route cables through the provided openings without pinching them under the cap.
-5. Orient the external fan using its airflow arrow so air passes through the
-   enclosure. If adding the opposite fan, orient both for the same through-flow;
-   they should not blow against each other. Keep the Sparks' own vents unobstructed.
-6. Fit the cap if using it. Power the external fans from a suitable supply and
-   controller; this guide does not assume an accessible fan header on the Spark.
-   Confirm airflow and cable clearance before powering the computers.
-7. Start both machines, verify sensors, then run the same sustained workload as
-   the baseline. Watch both NVMe drives and both machines, not only the cooler GPU.
+1. Print the body and, if you want it, the cap. Check for cracks, warped rails
+   and rough edges, remove the brim, and make sure the cap fits the empty body.
+2. Try the fan in place first. Pick screws long enough to hold it but short
+   enough not to reach a computer or crack the wall. Keep its cable away from
+   the blades.
+3. Shut both Sparks down and unplug them. If you're removing the bottom covers,
+   do it now and keep the panels.
+4. Slide the machines onto the rails without forcing them. Check that the gap is
+   open, the undersides have clearance and you can reach the ports. Run the
+   cables through the openings so the cap doesn't pinch them.
+5. Point the fan by the arrow on its frame so it blows through the enclosure.
+   With a second fan, point both the same way so they don't fight each other.
+   Don't block the Sparks' own vents.
+6. Fit the cap if you use it. Power the fans from their supply and controller,
+   check that air is moving and nothing touches the blades, and only then power
+   on the computers.
+7. Start both machines, check that their sensors read normally, and run the same
+   long workload you used for your baseline. Watch both machines and both NVMe
+   drives, not just the GPU.
 
-The ARCTIC fan shown is rated for 12 V DC, 0.33 A, with a four-pin PWM connection.
-Its 6.9 mmH₂O static-pressure rating is a manufacturer specification, not pressure
-measured inside this enclosure. It is not a USB-powered fan. Source:
+The ARCTIC P12 Pro PST is a 12 V DC, 0.33 A fan with a four-pin PWM connector.
+ARCTIC rates its static pressure at 6.9 mmH₂O. That's the maker's figure, not
+something we measured in the enclosure. See the
 [ARCTIC P12 Pro PST specification sheet](https://www.arctic.de/media/2c/de/c6/1750758983/Spec_Sheet_P12_Pro_PST_EN.pdf)
-(source notes in [the index](sources.md#external-enclosure-fan)).
+and the [source notes](sources.md#external-enclosure-fan).
 
-## Verify the cooldown
+## Measure the difference
 
-Keep workload, room conditions, clock cap and internal-fan policy fixed. Compare
-the previous placement, the case with one fan and, if needed, the case with two.
-Record external fan settings and the settled temperature of each NVMe drive.
+Keep the workload, room, clock cap and internal fan settings the same, and
+compare three setups: how the Sparks stood before, the enclosure with one fan,
+and, if you want, the enclosure with two fans. Write down the external fan
+speed and the settled temperature of each NVMe drive.
 
 ```sh
 mkdir -p measurements
 python3 scripts/thermal-sample.py --duration 900 --interval 2 > measurements/enclosure-one-fan.csv
-# Repeat the same workload and sampling for the comparison configuration.
+# Repeat the same workload and sampling for the setup you're comparing against.
 ```
 
-Extend the run if temperatures are still changing. Check noise and stable idle
-operation too. There is no published enclosure delta yet; the separate internal
-fan-floor result in [results.md](results.md) is not an enclosure benchmark.
+If temperatures are still changing at the end, run longer. Also listen to the
+noise and check that both machines behave normally at idle. Our
+[fan-floor result](results.md) is about the Spark's internal fans, not this
+enclosure.
 
-## Undo
+## Take it apart
 
-Shut down both computers and disconnect power to them and the external fans.
-Remove the cap and lift out the machines without loading the cables or antennas.
-Refit the decorative panels if desired, restore the previous placement and
-recheck under load. No software setting is changed by assembling this enclosure.
+Shut down both computers and unplug them and the external fans. Take off the cap
+and lift the machines out without pulling on cables or pressing on the antennas.
+Refit the bottom panels if you want, and put the Sparks back where they were.
+Run the load check again. The enclosure changes no software settings.

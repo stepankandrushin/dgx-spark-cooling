@@ -1,31 +1,38 @@
 # Hold a 9,000 RPM minimum fan speed
 
-The fan floor gives a substantial measured temperature reduction in our sustained
-decode test. It is also the most involved method: the pinned driver needs EC
-3.5.8, whose idle fan-stop defect needs a workaround. Read the whole procedure
-before changing firmware. If you prefer current stock firmware, use the clock
-cap and keep the stock fan controller.
+The Spark has two internal fans, and its embedded controller (EC) sets their
+speed automatically. Under our sustained load it kept them at about 3,600 and
+5,400 RPM. This method uses a separate open-source driver to tell the EC never to
+go below 9,000 RPM. The EC can still spin the fans faster if it wants to.
 
-## What the numbers mean
+In our tests it brought temperatures down a lot, even with the clock cap
+already on. It's also by far the most work. The driver works only with an older
+EC firmware, 3.5.8, so you have to downgrade. That firmware has a bug that can
+stop both fans at idle, so you also need a workaround for it. Read the whole
+guide before you change any firmware. If you'd rather stay on current firmware,
+use the [clock cap](gpu-clock-cap.md) and leave the fans on automatic.
 
-`spark-fan set 66` requests the next supported floor above 66% of 13,500 RPM:
-9,000 RPM. This is a **minimum**, not PWM duty or a fixed equal speed. The firmware
-can request more cooling. Fan 1 saturates at 9,000 RPM; fan 2 at 13,500 RPM.
-`spark-fan auto` removes the added floor through the driver's authenticated unset
-value, `0xffff`. It does not command stopped fans.
+## What it does and what it changed for us
 
-With the 2,200 MHz GPU cap already active, the four-machine mean GPU temperature
-fell from 60.0 to 52.7 °C, and NVMe from 48.6 to 42.9 °C. Increasing the floor to
-13,500 gave only another 1.5 °C GPU and 0.9 °C NVMe reduction. We chose 9,000 for
-cooler storage, accepting noise. Storage lifespan and sound-pressure levels were
-not measured. See [the complete sweep](results.md).
+`spark-fan set 66` asks for the lowest supported floor at or above 66% of
+13,500 RPM, which is 9,000 RPM. That number is a minimum fan speed. It isn't a
+PWM duty, and the two fans don't run at the same fixed speed. Fan 1 tops out at
+9,000 RPM and fan 2 at 13,500 RPM. `spark-fan auto` removes the floor again. It
+sends the driver's "no floor" value, `0xffff`, and never tells the fans to stop.
 
-## 1. Establish compatibility and recovery access
+We ran this test with the 2,200 MHz GPU cap already on. Across four machines the
+average GPU temperature fell from 60.0 to 52.7 °C, and the NVMe drives from 48.6
+to 42.9 °C. Going all the way to 13,500 RPM only took off another 1.5 °C on the
+GPU and 0.9 °C on the drives. We chose 9,000 RPM to keep the drives cooler and
+accepted the noise. We didn't measure noise levels or drive lifespan. The whole
+sweep is in [results](results.md#fan-floor).
 
-The validated combination is NVIDIA DGX Spark, EC 3.5.8 (`0x03000508`), SoC
-2.158.15, signed driver 0.1.4 at commit
-`d121e06f0b62837632656ba95dc0d6445951142c`, kernel 7.0.0-1025-nvidia.
-Keep the SoC and USB-C PD firmware unchanged during this procedure.
+## 1. Check that your Spark matches, and plan for recovery
+
+This is the combination we ran: NVIDIA DGX Spark, EC 3.5.8 (`0x03000508`), SoC
+2.158.15, the signed driver 0.1.4 at commit
+`d121e06f0b62837632656ba95dc0d6445951142c`, and kernel 7.0.0-1025-nvidia.
+Don't change the SoC or USB-C PD firmware during this procedure.
 
 ```sh
 uname -r
@@ -35,41 +42,43 @@ sudo dmidecode -t 45
 python3 scripts/spark-fan status
 ```
 
-Record the installed EC version, its fwupd device ID and the current kernel.
-EC 3.13.7 is incompatible with this driver's control interface. Do not patch out
-its capability checks. A different kernel needs a successful build and validation;
-it is outside the exact tested pairing above.
+Write down the EC version, the EC's fwupd device ID and the kernel. The driver
+doesn't work with EC 3.13.7, and you shouldn't patch out its checks to force it.
+A different kernel is untested: the driver has to build and pass the checks
+below before you rely on it.
 
-Stop inference jobs before firmware work. Have the machine's preboot console
-available for MOK enrollment, and a person able to disconnect and reconnect that
-individual machine's power. Warm reboots can leave the EC link frozen, including
-on newer firmware. Do not plan this as an unattended remote firmware installation.
+Stop inference first. You will need the machine's boot console to enroll a
+signing key. You will also need someone who can unplug that one Spark and plug
+it back in. A warm reboot can leave the EC unresponsive, even on newer firmware.
+Don't plan this as an unattended remote firmware update.
 
-## 2. Install the idle-fan workaround before using the older EC
+## 2. Install the idle-fan workaround before the downgrade
 
-On EC 3.5.8, an uncabled ConnectX-7 can power down and leave both fans stopped.
-Blocking its hotplug module prevents that power-down. Install from this repo:
+On EC 3.5.8, if the ConnectX-7 network adapter has no cable, it can power down.
+When that happens, both fans can stop. Blocking the adapter's hotplug module
+keeps it powered, so the fans keep running. From this repository:
 
 ```sh
 sudo install -m 0644 scripts/no-cx7-hotplug.conf /etc/modprobe.d/no-cx7-hotplug.conf
 sudo update-initramfs -u -k "$(uname -r)"
 ```
 
-This takes effect after reboot. Keep it even with a permanent floor: if the floor
-service fails, the machine can return to automatic control. It also protects a
-connected machine if its QSFP cable is removed later.
+It takes effect after the next reboot. Keep it even after the floor is set up.
+If the floor service ever fails, the fans fall back to automatic, and the bug
+can come back. It also protects a machine whose QSFP cable is unplugged later.
 
-The workaround keeps extra hardware powered. Approximately 17 W is an upstream
-report for an otherwise uncabled adapter, not a measurement from our machines.
-That is not an additional 17 W relative to a connected adapter already powered on.
-See the [NVIDIA discussion](https://forums.developer.nvidia.com/t/dgx-spark-fans-stop-when-the-screen-goes-dark-or-running-from-ssh-box-gets-too-hot-to-touch-fire-hazard/378945/24),
+The cost is extra power, since the adapter stays on. An upstream report puts
+it at about 17 W for an adapter with no cable. We didn't measure that ourselves.
+If your adapter is already cabled and powered, it doesn't add another 17 W. See the
+[NVIDIA forum discussion](https://forums.developer.nvidia.com/t/dgx-spark-fans-stop-when-the-screen-goes-dark-or-running-from-ssh-box-gets-too-hot-to-touch-fire-hazard/378945/24),
 posts 22 and 24.
 
-## 3. Obtain both EC images and verify them
+## 3. Download and verify both EC images
 
-Skip the downgrade if the EC already reads 3.5.8. Otherwise obtain the official
-signed downgrade and rollback images. These are for NVIDIA DGX Spark, not partner
-GB10 products. Downloading does not install firmware:
+If your EC already reports 3.5.8, skip this step. Otherwise download NVIDIA's
+signed 3.5.8 image for the downgrade and the 3.13.7 image for going back later.
+Both are for NVIDIA DGX Spark only, not partner GB10 machines. Downloading
+installs nothing:
 
 ```sh
 mkdir -p firmware
@@ -82,9 +91,10 @@ printf '%s  %s-ec_fused.cab\n' "$old" "$old" "$new" "$new" | sha256sum --check
 cd ..
 ```
 
-Both checks must pass. Read [capsule provenance](sources.md#firmware)
-and compare the device's LVFS release metadata. Retain the 3.13.7 image for rollback.
-Select the **EC device ID reported by your machine**, not the SoC or USB-C PD device:
+Both checksums must pass. See [where the images come from](sources.md#firmware)
+and compare with the LVFS release information for your device. Keep the 3.13.7
+image so you can go back. When you install, use **the EC device ID your machine
+reports**. Don't use the SoC or USB-C PD device:
 
 ```sh
 EC_DEVICE_ID='REPLACE_WITH_YOUR_EC_DEVICE_ID'
@@ -92,13 +102,13 @@ sudo fwupdmgr local-install firmware/3f220245f0803c4927490d01a8403560687fe6a631e
 sudo systemctl reboot
 ```
 
-Inspect fwupd's device and version confirmation. Do not override verification
-failures. After reboot, run `fwupdmgr get-devices` and require EC 3.5.8. Check that
-SoC and PD versions match your recorded values.
+Read what fwupd reports about the device and version. If verification fails,
+stop. Don't override it. After the reboot, `fwupdmgr get-devices` must show EC
+3.5.8, with the SoC and PD versions unchanged from what you wrote down.
 
-## 4. Check EC health and genuinely idle cooling
+## 4. Check the EC is healthy, including at idle
 
-From the repo, inspect repeated status readings for at least three minutes:
+From the repository, take status readings for at least three minutes:
 
 ```sh
 for sample in 1 2 3 4 5 6 7; do
@@ -111,25 +121,30 @@ lspci -nn | rg -i 'Mellanox|ConnectX'
 journalctl -b -k | rg 'rtc-efi|Cable removal'
 ```
 
-Use `grep -E` instead of `rg` if ripgrep is not installed. The hotplug-module search
-should find nothing; ConnectX-7 functions should remain present. The RTC must
-advance with UTC, temperatures must read sensibly, and both fans must run.
-There should be no EC clock error or CX7 cable-removal event.
+If you don't have ripgrep, use `grep -E` instead of `rg`. What you should see:
 
-Then leave inference stopped and validate at least ten genuinely idle minutes,
-including the intended headless/uncabled condition. Keep observing both fan
-readings and temperature. A short successful load test misses the idle defect.
-Do not query an uncabled adapter with mstflint as part of this procedure.
+- The hotplug module search finds nothing, but the ConnectX-7 devices are still listed.
+- The EC clock advances along with UTC.
+- Temperatures look sensible and both fans are spinning.
+- There are no EC clock errors and no CX7 cable-removal events.
 
-If the EC clock freezes or fan readings become stale, keep workloads stopped.
-Shut down cleanly, physically power-cycle only the affected machine, and repeat
-the three-minute health check. A power-button press may be needed after reconnecting.
-Do not repeatedly force module loading or treat stale RPM as evidence of cooling.
+Then leave inference off and watch it for at least ten minutes of real idle,
+set up the way it will normally run: headless, and with the adapter uncabled if
+that's how you use it. Keep watching both fan speeds and the temperatures. A
+short load test won't show the idle bug. Don't query an uncabled adapter with
+mstflint during this check.
 
-## 5. Build and sign the pinned driver
+If the EC clock stops or the fan readings stop changing, keep workloads off.
+Shut down cleanly, unplug only that Spark, plug it back in and run the
+three-minute check again. You may have to press the power button after
+reconnecting. Don't keep forcing the module to load, and don't treat a
+stuck RPM reading as proof the fans are working.
 
-Follow the [upstream installation guide](https://github.com/christopherowen/dgx-spark-fan-control/blob/d121e06f0b62837632656ba95dc0d6445951142c/docs/installation.md).
-The manual signed route used here is:
+## 5. Build and sign the driver
+
+This follows the
+[upstream installation guide](https://github.com/christopherowen/dgx-spark-fan-control/blob/d121e06f0b62837632656ba95dc0d6445951142c/docs/installation.md),
+using its manual signed build:
 
 ```sh
 sudo apt-get install git build-essential linux-headers-"$(uname -r)" python3 openssl mokutil
@@ -143,10 +158,11 @@ sudo mokutil --import "$HOME/.local/share/dgx-spark-fan-control/keys/MOK.der"
 sudo systemctl reboot
 ```
 
-If an enrolled signing pair already exists, reuse it instead of generating another.
-Choose an enrollment password when prompted, then complete **Enroll MOK → Continue
-→ Yes** at the preboot console. Keep the private key outside this checkout.
-After reboot, recheck EC health, return to the driver checkout, then:
+If you already have an enrolled signing key, reuse it instead of making a new
+one. Choose an enrollment password when asked. Then at the boot console
+choose **Enroll MOK → Continue → Yes**. Keep the private key outside this
+repository. After the reboot, check EC health again, go back to the driver
+checkout and run:
 
 ```sh
 mokutil --test-key "$HOME/.local/share/dgx-spark-fan-control/keys/MOK.der"
@@ -157,16 +173,18 @@ modinfo -F signer dgx_ec_fan_control
 sudo install -m 0755 userspace/dgx_fan_control.py /usr/local/sbin/dgx-fan-control
 ```
 
-Require successful key enrollment and a signed module for the running kernel.
-This route has no DKMS registration: repeat build/sign/install after a kernel
-change, using the same enrolled key. Do not install upstream's boot-load entry
-or curve service alongside this guide's floor service.
+The key must be enrolled and the module signed for the kernel you're running.
+This build isn't registered with DKMS. After every kernel update you have to
+build, sign and install it again with the same key. Don't install upstream's
+boot-load entry or fan-curve service. They would conflict with this guide's
+floor service.
 
-## 6. Register this Spark and validate manual control
+## 6. Register this Spark and try the floor by hand
 
-Return to the **cooling repository**. Registering saves this machine's identity
-locally; it is never included in the public repository. Review the target
-hostname and serial locally before running this step:
+Go back to **this cooling repository**. The next step saves this machine's
+hostname and serial number to a local file. The wrapper won't change fan
+settings on a machine that doesn't match it. The file stays on the Spark and
+never goes into the repository. Check the hostname and serial before you run it:
 
 ```sh
 sudo install -d -m 0755 /etc/dgx-spark-cooling
@@ -189,21 +207,24 @@ sudo spark-fan set 66
 spark-fan status
 ```
 
-The first auto loads the module only after identity, firmware, RTC, fan telemetry
-and temperature checks. Require upstream status `state=0/12` after auto and a
-`dgx_ec_fan_floor` cooling device. `set 50` requests 7,200 RPM; `set 66` requests
-9,000. Each operation checks readback and prints before/after telemetry. Real RPM
-can settle a little below the requested floor. If a check fails, investigate
-before continuing. Restoring automatic can itself fail if EC communication fails.
+The first `auto` loads the driver only after checking the machine identity, the
+firmware, the EC clock, the fan readings and the temperatures. After `auto`,
+upstream's status must show `state=0/12`, and a `dgx_ec_fan_floor` cooling
+device must exist. `set 50` asks for 7,200 RPM and `set 66` for 9,000 RPM. Every
+command reads the setting back and prints the fan readings before and after. The
+actual speed can settle a little below the requested floor. If any check fails,
+find out why before going on. If the EC stops responding, even going back to
+automatic can fail.
 
-## 7. Measure cooldown, then keep the floor across boot
+## 7. Measure the difference, then keep the floor after reboot
 
-With the clock cap fixed and the same workload running, record an automatic
-baseline, then each floor for at least ten minutes. Analyse the last four minutes
-of each interval; extend it if storage has not settled. Return to automatic as
-a final control. See [the measurement recipe](results.md#repeat-the-experiment).
+Keep the clock cap and the workload the same. Record a run on automatic, then
+each floor you want to compare for at least ten minutes. Use the last four
+minutes of each, or longer if the drives haven't settled. Finish with automatic
+again as a check. The [measurement recipe](results.md#repeat-the-experiment) has
+the details.
 
-After choosing the floor, install from the cooling repo:
+Once you've picked a floor, install the boot service from this repository:
 
 ```sh
 sudo install -m 0644 systemd/spark-fan-floor.service /etc/systemd/system/
@@ -213,15 +234,16 @@ systemctl status spark-fan-floor.service --no-pager
 spark-fan status
 ```
 
-Stop workloads and reboot when ready; verify the floor, EC health, idle behavior
-and sustained-load temperatures again. The unit retries failures every 30 seconds
-for roughly five minutes. A failed unit needs attention. Healthy firmware normally
-retains automatic cooling if loading fails, but a failed EC transport cannot
-guarantee restoration. The workaround is still required.
+When it suits you, stop workloads and reboot. Then check the floor, EC health,
+idle behaviour and temperatures under long load again. If the service fails, it
+retries every 30 seconds for about five minutes. If it stays failed, look into
+it. With healthy firmware, the fans normally stay on automatic if the driver
+can't load. If the EC link itself has failed, nothing can guarantee that. That's
+why the idle workaround stays in place.
 
-## Undo and return to newer firmware
+## Undo, and go back to newer firmware
 
-To remove only the added floor:
+To remove only the floor:
 
 ```sh
 sudo systemctl disable --now spark-fan-floor.service
@@ -229,9 +251,9 @@ sudo spark-fan auto
 dgx-fan-control status
 ```
 
-Keep the CX7 workaround while EC 3.5.8 remains installed. To leave this setup
-completely, stop inference, verify automatic state, unload the module, then install
-the verified rollback capsule from the cooling checkout:
+Keep the CX7 workaround as long as EC 3.5.8 is installed. To undo everything,
+stop inference, confirm the fans are on automatic, unload the driver, and install
+the verified 3.13.7 image from this repository:
 
 ```sh
 sudo modprobe -r dgx_ec_fan_control
@@ -240,8 +262,9 @@ sudo fwupdmgr local-install firmware/c3fab69bb1ef6d22e1a1d28a0bbc05319fb321bf81a
 sudo systemctl reboot
 ```
 
-Require EC 3.13.7 readback and a healthy RTC/fans. Only then remove the workaround,
-rebuild initramfs, reboot and repeat the ten-minute idle check:
+Before removing the workaround, make sure the EC reports 3.13.7 and the EC clock
+and fans are healthy. Then remove it, rebuild the initramfs, reboot and do the
+ten-minute idle check again:
 
 ```sh
 sudo rm /etc/modprobe.d/no-cx7-hotplug.conf
@@ -249,16 +272,18 @@ sudo update-initramfs -u -k "$(uname -r)"
 sudo systemctl reboot
 ```
 
-The disabled fan unit and unused module can remain for reference; if removing them,
-remove only files installed by this guide and run `depmod -a` and
-`systemctl daemon-reload`. Deleting a signing key file does not revoke its MOK
-enrollment. The independent GPU cap can stay or be [undone separately](gpu-clock-cap.md#undo).
+You can leave the disabled service and the unused driver installed. If you remove
+them, delete only what this guide installed, then run `depmod -a` and
+`systemctl daemon-reload`. Deleting the signing key file doesn't remove its MOK
+enrollment. The GPU cap is separate. Keep it or
+[undo it](gpu-clock-cap.md#undo) on its own.
 
-## Attempts that did not work
+## What didn't work
 
-Stock ACPI Fan level-100 writes were accepted without increasing measured RPM.
-Writing zero to those devices has no established automatic-reset meaning on
-this setup. We do not use them. Increasing the floor did not demonstrate an
-inference-speed improvement, and a short initial test failed to reveal the idle
-fan-stop defect. Neither firmware downgrade alone nor successful `modprobe`
-proves the cooling system is ready.
+- Writing level 100 to the Spark's standard ACPI fan devices was accepted, but the
+  fans didn't speed up. We couldn't confirm that writing zero to them restores
+  automatic control on this setup, so we don't touch them at all.
+- Faster fans didn't make inference any faster.
+- Our first short test missed the idle fan-stop bug. It only showed up at real idle.
+- The setup isn't ready just because the firmware downgrade or the `modprobe`
+  succeeded. Run all the checks above.

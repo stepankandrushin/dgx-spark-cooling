@@ -1,16 +1,16 @@
 # Sources
 
-The guides rest on the original experiment records and the primary references below.
-This repository links to the publishers and does not redistribute their pages,
-third-party documentation or firmware binaries.
+The guides are based on our own experiment records and on the references below.
+We link to the publishers. Their pages, documentation and firmware files aren't
+copied into this repository.
 
 ## Fan control
 
 The external driver is Christopher Owen's
 [dgx-spark-fan-control](https://github.com/christopherowen/dgx-spark-fan-control),
 version 0.1.4, pinned to `d121e06f0b62837632656ba95dc0d6445951142c`, GPL-2.0-only.
-It is installed separately, unchanged. The wrapper in this repository is adapted
-from our own deployment wrapper; it is not a fork of the kernel driver.
+You install it separately, unmodified. The `spark-fan` wrapper here is the
+public version of the one we run on our machines. It isn't a fork of the driver.
 
 | Reference | Used for |
 | --- | --- |
@@ -23,33 +23,33 @@ from our own deployment wrapper; it is not a fork of the kernel driver.
 [NVIDIA's nvidia-smi manual](https://docs.nvidia.com/deploy/nvidia-smi/index.html)
 defines graphics-clock locking and reset.
 
-[Wild Pines AI's account](https://www.wildpines.ai/blog/your-dgx-spark-is-cooking-itself/)
-prompted our clock-cap test. Its machines, workload and reported results are its
-own; our numbers come from our separate measurements. We do not adopt its broad
-overheating explanations or claim that our machines suffered the shutdowns
-described there.
+[Wild Pines AI's article](https://www.wildpines.ai/blog/your-dgx-spark-is-cooking-itself/)
+is what got us to try the clock cap. Its machines, workload and results are its
+own. Our numbers come only from our own measurements. We don't repeat its wider
+overheating explanations, and we didn't see the shutdowns it describes on our
+machines.
 
 ## Physical modifications and design
 
-The cover and enclosure guides come from two demonstration videos by the owner:
-decorative bottom-cover removal with a temporary external-cooler trial, and a
-walkthrough of the owner's printed ABS two-Spark enclosure. The videos are not
-published. The design files and five case photos are in
-[3d-print/](../3d-print/README.md). Print settings were read from the owner's saved
-slicer projects; printer-specific G-code is not distributed.
+The cover and enclosure guides are based on my own work on the machines, which I
+recorded in two videos: taking off the bottom cover and trying the external
+cooler, and a walkthrough of the printed enclosure. The videos aren't published.
+The design files and five photos are in [3d-print/](../3d-print/README.md). The
+print settings come from my saved slicer projects. G-code isn't included.
 
 ## External enclosure fan
 
-The enclosure footage shows an ARCTIC P12 Pro PST. Its dimensions, supply rating
-and quoted static pressure were checked against the
+The enclosure uses an ARCTIC P12 Pro PST. Its size, power rating and static
+pressure come from the
 [manufacturer's specification sheet](https://www.arctic.de/media/2c/de/c6/1750758983/Spec_Sheet_P12_Pro_PST_EN.pdf).
-These are specification values, not measurements of the completed enclosure.
+They're the maker's figures, not measurements in the enclosure.
 
 ## Firmware
 
-The official capsules below are the LVFS downloads, with the SHA-256 recorded from
-the machine's LVFS metadata. A checksum establishes the downloaded bytes; fwupd
-must still validate the signed capsule against the selected device.
+The firmware images below are NVIDIA's official downloads from LVFS. The SHA-256
+values come from the LVFS metadata on our machine. A matching checksum shows you
+downloaded the right file. fwupd still checks the image's signature against
+your device when it installs it.
 
 The [fwupd 2.0.20 command source](https://raw.githubusercontent.com/fwupd/fwupd/2.0.20/src/fu-util.c)
 confirms `local-install FILE [DEVICE-ID|GUID]`.
@@ -61,7 +61,7 @@ confirms `local-install FILE [DEVICE-ID|GUID]`.
 
 ## Our measurements
 
-The [result tables](results.md) and the [CSV files](../results/) are transcribed
-aggregates of the clock comparison, fan sweep and persistence records.
-They contain no machine names, serial numbers, private addresses or service
-endpoints. The raw sample logs are not published.
+The [result tables](results.md) and the [CSV files](../results/) are summaries
+copied from our records of the clock comparison, the fan sweep and the reboot
+checks. They contain no machine names, serial numbers, private addresses or
+service endpoints. The raw sample logs aren't published.

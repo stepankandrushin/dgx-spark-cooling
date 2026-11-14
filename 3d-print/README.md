@@ -1,9 +1,9 @@
 # DGX Spark Duo print files
 
-Original design by Stepan Kandrushin: an ABS body and cap for two DGX Sparks with
-120 mm external fans. These are the exact requested design files, copied without
-rescaling. The case photos show the printed parts; the render shows the intended
-computer arrangement.
+Designed by Stepan Kandrushin: an ABS body and cap that hold two DGX Sparks,
+with 120 mm fans moving air past them. These are my original design files, not
+rescaled. The photos show the printed parts. The render shows how
+the two computers sit inside.
 
 | File | Purpose |
 | --- | --- |
@@ -20,8 +20,8 @@ Photos in this same directory: [assembled exterior](DGX_Spark_Duo_photo_01.jpg),
 
 ## Print settings
 
-The saved owner slicer projects identify a Bambu Lab X1 Carbon with a 0.4 mm
-nozzle and Generic ABS. Their recorded settings are:
+My saved slicer projects are set up for a Bambu Lab X1 Carbon with a 0.4 mm
+nozzle and Generic ABS, with these settings:
 
 | Setting | Body | Cap |
 | --- | --- | --- |
@@ -33,20 +33,21 @@ nozzle and Generic ABS. Their recorded settings are:
 | Nozzle setpoint | 270 °C | 270 °C |
 | Textured plate profile setpoint | 90 °C | 105 °C |
 
-These are saved profile values, not a universal ABS recipe or a log proving the
-temperatures of a completed print. Use the profile appropriate to your printer,
-filament and plate. Printer-specific G-code is not distributed here; slice the
-STLs yourself. The body is taller than the cap in their saved print orientations.
+They're what my profiles were set to, not a general ABS recipe. Use what suits
+your printer, filament and plate. There's no G-code here, so slice the STLs
+yourself. In the saved print orientations the body is taller than the cap.
 
-STLs do not encode a unit. Import as millimetres and verify these mesh bounding
-dimensions before slicing (X × Y × Z in the saved orientation):
+STL files don't store units. Import them as millimetres and check that the sizes
+match these before slicing (X × Y × Z in the saved orientation):
 
 - Body: 172.0 × 152.5 × 193.8 mm, 3,730 triangles.
 - Cap: 178.5 × 155.5 × 86.2 mm, 3,474 triangles.
 
-These dimensions are for each part, not the assembled case. The section drawing
-shows 12 mm top/bottom clearance and an 18 mm open gap between Sparks. Check the
-printed fit and rail support before placing either computer in it.
+Those are the sizes of each part on its own, not of the assembled case. The
+section drawing shows 12 mm of space above and below and an 18 mm open gap
+between the two Sparks. Check how the print fits and that the rails hold before
+you put a computer in.
 
-See the [assembly, airflow, measurement and undo guide](../docs/printed-enclosure.md).
-The original designs, drawings and case photos use the repository's [MIT license](../LICENSE).
+Assembly, airflow, measuring and taking it apart are in the
+[enclosure guide](../docs/printed-enclosure.md). The designs, drawings and photos
+are under the repository's [MIT license](../LICENSE).
