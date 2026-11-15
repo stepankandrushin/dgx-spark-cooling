@@ -30,6 +30,8 @@ area. The panel comes off by hand and goes back on the same way. Afterwards the
 Spark has to stand on its edges with space underneath. Don't set it flat on a
 table.
 
+![Pulling the bottom cover off a DGX Spark by hand](docs/images/bottom-cover-off.gif)
+
 We haven't measured this change on its own. Guide: [bottom cover](docs/bottom-cover.md).
 
 ### 2. Put two Sparks in the ABS enclosure
@@ -38,7 +40,7 @@ The enclosure holds two Sparks one above the other, with an 18 mm gap between
 them and 12 mm of space above and below. They rest on narrow rails along their
 edges, so their open undersides stay in the airflow. A 120 mm fan at one end
 moves air through the gaps past both machines, and the cap at the other end can
-hold a second fan. The fans need their own power supply and controller.
+hold a second fan. The fans need their own 12 V supply.
 
 We haven't measured this one on its own either. Guide: [printed enclosure](docs/printed-enclosure.md).
 

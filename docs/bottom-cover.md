@@ -6,26 +6,31 @@ area, especially around the drive. That matters most once the Spark sits in the
 [ABS enclosure](printed-enclosure.md), where a fan moves air through the gaps
 around it.
 
-Only the outer panel comes off. The metal chassis, the drive, the antennas and
-every heatsink stay where they are. We haven't measured the effect of the panel
-alone.
+![Pulling the bottom cover off a DGX Spark by hand](images/bottom-cover-off.gif)
+
+That's the whole job: the panel comes off with your fingers in a few seconds, no
+tools. Only the outer panel comes off. The metal chassis, the drive, the antennas
+and every heatsink stay where they are. The magnets you'll see under it don't hold
+the panel. They're there to catch the screws when you unscrew them, so they don't
+roll away, but nothing gets unscrewed here.
+
+We haven't measured the effect of the panel alone.
 
 ## Take it off
 
 1. Measure first: run your usual long workload and record temperatures,
    including the NVMe drive (see [measuring](#measure-the-difference) below).
-2. Shut the Spark down, unplug it and let it cool.
-3. Put it on a clean, stable surface. Pull the panel off gently by hand and
-   keep it for later. If it resists, look at how it's held before
+2. Tip the Spark onto its side and pull the panel off by hand, as in the clip
+   above. Keep it for later. If it resists, look at how it's held before
    pulling harder. Don't pry near the electronics.
-4. Leave the drive, antennas and chassis alone. Keep tools and loose metal away
+3. Leave the drive, antennas and chassis alone. Keep tools and loose metal away
    from the exposed underside.
-5. From now on, stand the Spark on its edges with air space below it, for example
+4. From now on, stand the Spark on its edges with air space below it, for example
    on the enclosure's rails. Don't put the open underside flat on a table or a
    solid shelf. Taking the panel off doesn't move any air by itself. It only
    helps if air can actually reach the underside.
-6. Plug it back in, run the same workload with the same clock and fan settings,
-   and record temperatures again. Watch the drive as well as the GPU.
+5. Run the same workload with the same clock and fan settings, and record
+   temperatures again. Watch the drive as well as the GPU.
 
 ## The small external cooler
 
@@ -44,7 +49,7 @@ each run. If the drive temperature is still climbing at the end, run longer.
 ```sh
 mkdir -p measurements
 python3 scripts/thermal-sample.py --duration 900 --interval 2 > measurements/cover-on.csv
-# Shut down, remove the panel, then repeat the same workload.
+# Remove the panel, then repeat the same workload.
 python3 scripts/thermal-sample.py --duration 900 --interval 2 > measurements/cover-off.csv
 ```
 
@@ -55,6 +60,6 @@ with an idle one. Keep these results apart from our
 
 ## Put it back
 
-Shut down and unplug. Remove any extra cooler, fit the panel back on without
-trapping cables or pressing on the antennas, and put the Spark back where it was.
+Remove any extra cooler, press the panel back on without trapping cables or
+pressing on the antennas, and put the Spark back where it was.
 Run the same load check again.

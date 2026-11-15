@@ -17,8 +17,11 @@ for it yet.
 - [Cap STL](../3d-print/DGX_Spark_Duo_cap.stl), printed once if you want the
   closed version.
 - One 120 mm fan, plus a second one if you like. I use the ARCTIC P12 Pro PST.
-- Screws to mount the fan, a 12 V supply and a fan controller. The fan doesn't
-  run from USB, and you shouldn't count on a fan header inside the Spark.
+- Screws to mount the fan, and a 12 V supply for it. The fan doesn't run from
+  USB, and you shouldn't count on a fan header inside the Spark. I wire mine
+  straight to the 12 V supply with a DIY connector and leave the PWM wire
+  unconnected, so it always runs at full speed. Add a fan controller if you want
+  it slower and quieter.
 
 The [design preview](../3d-print/DGX_Spark_Duo_preview.png), the
 [section drawing](../3d-print/DGX_Spark_Plan.png), the photos and the
@@ -47,18 +50,16 @@ are only highlighted. The whole body is one material.
 2. Try the fan in place first. Pick screws long enough to hold it but short
    enough not to reach a computer or crack the wall. Keep its cable away from
    the blades.
-3. Shut both Sparks down and unplug them. If you're removing the bottom covers,
-   do it now and keep the panels.
+3. If you're removing the bottom covers, do it now and keep the panels.
 4. Slide the machines onto the rails without forcing them. Check that the gap is
    open, the undersides have clearance and you can reach the ports. Run the
    cables through the openings so the cap doesn't pinch them.
 5. Point the fan by the arrow on its frame so it blows through the enclosure.
    With a second fan, point both the same way so they don't fight each other.
    Don't block the Sparks' own vents.
-6. Fit the cap if you use it. Power the fans from their supply and controller,
-   check that air is moving and nothing touches the blades, and only then power
-   on the computers.
-7. Start both machines, check that their sensors read normally, and run the same
+6. Fit the cap if you use it. Connect the fans to their 12 V supply and check
+   that air is moving and nothing touches the blades.
+7. Check that both machines' sensors read normally, and run the same
    long workload you used for your baseline. Watch both machines and both NVMe
    drives, not just the GPU.
 
@@ -88,7 +89,6 @@ enclosure.
 
 ## Take it apart
 
-Shut down both computers and unplug them and the external fans. Take off the cap
-and lift the machines out without pulling on cables or pressing on the antennas.
+Take off the cap and lift the machines out without pulling on cables or pressing on the antennas.
 Refit the bottom panels if you want, and put the Sparks back where they were.
 Run the load check again. The enclosure changes no software settings.
