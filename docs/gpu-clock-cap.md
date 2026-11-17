@@ -18,7 +18,7 @@ On four Sparks under inference load:
 - Average temperatures during the hot benchmark fell 2.2–6.8 °C in the CPU
   zones and 1.0–3.9 °C on the NVMe drives.
 - A single request generated text about 1–2% slower. Sixteen requests at once
-  went from 239.2 to 221.0 tokens/s, 7.6% less. Long prompts took about 2–5%
+  went from 239.2 to 221.0 tokens/s 7.6% less. Long prompts took about 2–5%
   longer to process.
 
 One machine's CPU peak went up slightly even though its average fell. The full
@@ -26,8 +26,8 @@ table is in [results](results.md#gpu-clock-cap).
 
 ## Measure before you change it
 
-Record what you're running so you can repeat it exactly: `uname -r`,
-`nvidia-smi`, `fwupdmgr get-devices`, and your model, precision, context sizes
+Record what you're running so you can repeat it exactly: `uname -r`
+`nvidia-smi` `fwupdmgr get-devices` and your model, precision, context sizes
 and concurrency. Make sure no other clock-cap service or tuning tool will change
 settings in the middle of the test.
 
@@ -78,7 +78,7 @@ systemctl status spark-gpu-clock-cap.service --no-pager
 ```
 
 It runs once at boot, after nvidia-persistenced and before Docker. When it has
-worked, the status shows `active (exited)`. Your inference service still starts
+worked, the status shows `active (exited)` Your inference service still starts
 even if the cap fails, so after a reboot check the unit and the loaded clocks
 before you leave the machine unattended. Reboot once at a convenient time and
 check both.

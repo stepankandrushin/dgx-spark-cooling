@@ -64,7 +64,7 @@ are only highlighted. The whole body is one material.
    drives, not just the GPU.
 
 The ARCTIC P12 Pro PST is a 12 V DC, 0.33 A fan with a four-pin PWM connector.
-ARCTIC rates its static pressure at 6.9 mmH₂O. That's the maker's figure, not
+ARCTIC rates its static pressure at 6.9 mmH₂O That's the maker's figure, not
 something we measured in the enclosure. See the
 [ARCTIC P12 Pro PST specification sheet](https://www.arctic.de/media/2c/de/c6/1750758983/Spec_Sheet_P12_Pro_PST_EN.pdf)
 and the [source notes](sources.md#external-enclosure-fan).

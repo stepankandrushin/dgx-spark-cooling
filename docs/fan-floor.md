@@ -7,7 +7,7 @@ go below 9,000 RPM. The EC can still spin the fans faster if it wants to.
 
 In our tests it brought temperatures down a lot, even with the clock cap
 already on. It's also by far the most work. The driver works only with an older
-EC firmware, 3.5.8, so you have to downgrade. That firmware has a bug that can
+EC firmware, 3.5.8 so you have to downgrade. That firmware has a bug that can
 stop both fans at idle, so you also need a workaround for it. Read the whole
 guide before you change any firmware. If you'd rather stay on current firmware,
 use the [clock cap](gpu-clock-cap.md) and leave the fans on automatic.
@@ -18,7 +18,7 @@ use the [clock cap](gpu-clock-cap.md) and leave the fans on automatic.
 13,500 RPM, which is 9,000 RPM. That number is a minimum fan speed. It isn't a
 PWM duty, and the two fans don't run at the same fixed speed. Fan 1 tops out at
 9,000 RPM and fan 2 at 13,500 RPM. `spark-fan auto` removes the floor again. It
-sends the driver's "no floor" value, `0xffff`, and never tells the fans to stop.
+sends the driver's "no floor" value, `0xffff` and never tells the fans to stop.
 
 We ran this test with the 2,200 MHz GPU cap already on. Across four machines the
 average GPU temperature fell from 60.0 to 52.7 °C, and the NVMe drives from 48.6
@@ -29,9 +29,9 @@ sweep is in [results](results.md#fan-floor).
 
 ## 1. Check that your Spark matches, and plan for recovery
 
-This is the combination we ran: NVIDIA DGX Spark, EC 3.5.8 (`0x03000508`), SoC
-2.158.15, the signed driver 0.1.4 at commit
-`d121e06f0b62837632656ba95dc0d6445951142c`, and kernel 7.0.0-1025-nvidia.
+This is the combination we ran: NVIDIA DGX Spark, EC 3.5.8 `0x03000508` SoC
+2.158.15 the signed driver 0.1.4 at commit
+`d121e06f0b62837632656ba95dc0d6445951142c` and kernel 7.0.0-1025-nvidia
 Don't change the SoC or USB-C PD firmware during this procedure.
 
 ```sh
@@ -43,7 +43,7 @@ python3 scripts/spark-fan status
 ```
 
 Write down the EC version, the EC's fwupd device ID and the kernel. The driver
-doesn't work with EC 3.13.7, and you shouldn't patch out its checks to force it.
+doesn't work with EC 3.13.7 and you shouldn't patch out its checks to force it.
 A different kernel is untested: the driver has to build and pass the checks
 below before you rely on it.
 
@@ -54,7 +54,7 @@ Don't plan this as an unattended remote firmware update.
 
 ## 2. Install the idle-fan workaround before the downgrade
 
-On EC 3.5.8, if the ConnectX-7 network adapter has no cable, it can power down.
+On EC 3.5.8 if the ConnectX-7 network adapter has no cable, it can power down.
 When that happens, both fans can stop. Blocking the adapter's hotplug module
 keeps it powered, so the fans keep running. From this repository:
 
@@ -71,11 +71,11 @@ The cost is extra power, since the adapter stays on. An upstream report puts
 it at about 17 W for an adapter with no cable. We didn't measure that ourselves.
 If your adapter is already cabled and powered, it doesn't add another 17 W. See the
 [NVIDIA forum discussion](https://forums.developer.nvidia.com/t/dgx-spark-fans-stop-when-the-screen-goes-dark-or-running-from-ssh-box-gets-too-hot-to-touch-fire-hazard/378945/24),
-posts 22 and 24.
+posts 22 and 24
 
 ## 3. Download and verify both EC images
 
-If your EC already reports 3.5.8, skip this step. Otherwise download NVIDIA's
+If your EC already reports 3.5.8 skip this step. Otherwise download NVIDIA's
 signed 3.5.8 image for the downgrade and the 3.13.7 image for going back later.
 Both are for NVIDIA DGX Spark only, not partner GB10 machines. Downloading
 installs nothing:
@@ -104,7 +104,7 @@ sudo systemctl reboot
 
 Read what fwupd reports about the device and version. If verification fails,
 stop. Don't override it. After the reboot, `fwupdmgr get-devices` must show EC
-3.5.8, with the SoC and PD versions unchanged from what you wrote down.
+3.5.8 with the SoC and PD versions unchanged from what you wrote down.
 
 ## 4. Check the EC is healthy, including at idle
 
@@ -121,7 +121,7 @@ lspci -nn | rg -i 'Mellanox|ConnectX'
 journalctl -b -k | rg 'rtc-efi|Cable removal'
 ```
 
-If you don't have ripgrep, use `grep -E` instead of `rg`. What you should see:
+If you don't have ripgrep, use `grep -E` instead of `rg` What you should see:
 
 - The hotplug module search finds nothing, but the ConnectX-7 devices are still listed.
 - The EC clock advances along with UTC.
@@ -208,8 +208,8 @@ spark-fan status
 ```
 
 The first `auto` loads the driver only after checking the machine identity, the
-firmware, the EC clock, the fan readings and the temperatures. After `auto`,
-upstream's status must show `state=0/12`, and a `dgx_ec_fan_floor` cooling
+firmware, the EC clock, the fan readings and the temperatures. After `auto`
+upstream's status must show `state=0/12` and a `dgx_ec_fan_floor` cooling
 device must exist. `set 50` asks for 7,200 RPM and `set 66` for 9,000 RPM. Every
 command reads the setting back and prints the fan readings before and after. The
 actual speed can settle a little below the requested floor. If any check fails,
@@ -274,7 +274,7 @@ sudo systemctl reboot
 
 You can leave the disabled service and the unused driver installed. If you remove
 them, delete only what this guide installed, then run `depmod -a` and
-`systemctl daemon-reload`. Deleting the signing key file doesn't remove its MOK
+`systemctl daemon-reload` Deleting the signing key file doesn't remove its MOK
 enrollment. The GPU cap is separate. Keep it or
 [undo it](gpu-clock-cap.md#undo) on its own.
 

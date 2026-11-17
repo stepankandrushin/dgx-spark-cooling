@@ -46,7 +46,7 @@ zones and 1.0–3.9 °C on the NVMe drives. Not every peak fell, though. One
 machine's CPU peak rose from 87.7 to 88.7 °C while its average dropped. We saw
 no throttling or shutdowns before the cap either. Power is the GPU's
 own reading, not measured at the wall. The sixteen-request loss is
-`(221.0 / 239.2 - 1) * 100 = -7.61%`. See [clock-performance.csv](../results/clock-performance.csv).
+`(221.0 / 239.2 - 1) * 100 = -7.61%` See [clock-performance.csv](../results/clock-performance.csv).
 
 ## Fan floor
 
@@ -98,11 +98,11 @@ How far these numbers go:
 3. For a clock comparison, warm up the same way each time and compare while hot.
    Let temperatures come back close to the starting point before the next run.
 4. For a fan sweep, keep clocks fixed and the workload running without a break.
-   Test automatic, then 7,200 (`set 50`), 9,000 (`set 66`), optionally 13,500
-   (`set 100`), and automatic again. Give each step at least ten minutes and use
+   Test automatic, then 7,200 `set 50` 9,000 `set 66` optionally 13,500
+   `set 100` and automatic again. Give each step at least ten minutes and use
    the settled last part. Run `sudo spark-fan auto` at the end even if the
    benchmark fails. If the floor service is running, a manual change overrides
-   it until you restore it with `sudo systemctl restart spark-fan-floor`.
+   it until you restore it with `sudo systemctl restart spark-fan-floor`
 5. Check for errors and missing values before averaging. Look at each machine,
    at averages and at peaks separately. A missing fan reading never means zero,
    and it never means the fan is fine.

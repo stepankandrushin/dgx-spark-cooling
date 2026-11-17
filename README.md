@@ -65,7 +65,7 @@ wants to.
 
 With the clock cap already on, the average GPU temperature fell from 60.0 to
 52.7 °C and the NVMe drive from 48.6 to 42.9 °C. The cost is fan noise and
-setup work. The fan driver works only with an older EC firmware, 3.5.8. That
+setup work. The fan driver works only with an older EC firmware, 3.5.8 That
 firmware has a bug that can stop the fans at idle, so it also needs a
 workaround. Guide: [fan floor](docs/fan-floor.md).
 
@@ -86,7 +86,7 @@ not to fix a failure. Full tables, method and what didn't work:
 3. Try the clock cap. It needs no firmware change and is easy to undo. Check
    temperatures, tokens per second and prefill time before you keep it.
 4. Do the fan floor last, and only after reading its whole guide. It requires
-   downgrading the EC firmware. It doesn't work on the current EC, 3.13.7.
+   downgrading the EC firmware. It doesn't work on the current EC, 3.13.7
 5. After each change, check again after a reboot, under long load and at idle.
    Look at both fan speeds and the EC clock, not only the GPU temperature.
 
@@ -103,7 +103,7 @@ row per sensor at each sample, covering every thermal zone, the GPU and each
 NVMe drive. `spark-fan status` prints the EC firmware version, whether the EC
 link is healthy, both fan speeds and the temperatures. It exits non-zero if
 something is wrong. If the fan driver isn't loaded, it can't tell you whether a
-floor is set. Keep longer runs in `measurements/`, which git ignores.
+floor is set. Keep longer runs in `measurements/` which git ignores.
 
 ## What's in the repository
 
@@ -111,8 +111,8 @@ floor is set. Keep longer runs in `measurements/`, which git ignores.
   covers a small external cooler we tried for a while.
 - The enclosure's two STL files, a render, a dimensioned drawing and five photos
   in [3d-print/](3d-print/README.md).
-- `scripts/spark-fan`, a checked wrapper around the fan driver; systemd units for
-  the clock cap and the fan floor; `scripts/thermal-sample.py`, a read-only
+- `scripts/spark-fan` a checked wrapper around the fan driver; systemd units for
+  the clock cap and the fan floor; `scripts/thermal-sample.py` a read-only
   sampler; and offline tests.
 - [Measurement tables](results/) copied from our original experiment records.
 - [Sources and credits](docs/sources.md).
@@ -127,9 +127,9 @@ Every step is manual.
 
 ## Compatibility
 
-We ran the fan procedure on NVIDIA DGX Spark with EC 3.5.8, SoC 2.158.15,
+We ran the fan procedure on NVIDIA DGX Spark with EC 3.5.8 SoC 2.158.15
 kernel 7.0.0-1025-nvidia and the unmodified, signed dgx_ec_fan_control 0.1.4
-module, commit `d121e06f0b62837632656ba95dc0d6445951142c`, with Secure Boot on.
+module, commit `d121e06f0b62837632656ba95dc0d6445951142c` with Secure Boot on.
 After a kernel update the module has to be rebuilt and signed again. Other
 firmware combinations and partner GB10 machines are untested.
 

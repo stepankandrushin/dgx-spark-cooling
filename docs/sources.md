@@ -8,7 +8,7 @@ copied into this repository.
 
 The external driver is Christopher Owen's
 [dgx-spark-fan-control](https://github.com/christopherowen/dgx-spark-fan-control),
-version 0.1.4, pinned to `d121e06f0b62837632656ba95dc0d6445951142c`, GPL-2.0-only.
+version 0.1.4 pinned to `d121e06f0b62837632656ba95dc0d6445951142c` GPL-2.0-only
 You install it separately, unmodified. The `spark-fan` wrapper here is the
 public version of the one we run on our machines. It isn't a fork of the driver.
 
@@ -16,7 +16,7 @@ public version of the one we run on our machines. It isn't a fork of the driver.
 | --- | --- |
 | [Upstream README](https://github.com/christopherowen/dgx-spark-fan-control) | Driver identity, floors, compatibility and license |
 | [Pinned installation guide](https://github.com/christopherowen/dgx-spark-fan-control/blob/d121e06f0b62837632656ba95dc0d6445951142c/docs/installation.md) | Signed manual build and MOK enrollment |
-| [NVIDIA forum discussion, post 24](https://forums.developer.nvidia.com/t/dgx-spark-fans-stop-when-the-screen-goes-dark-or-running-from-ssh-box-gets-too-hot-to-touch-fire-hazard/378945/24) | Original report in post 22, NVIDIA response in post 24, old-EC idle defect and workaround |
+| [NVIDIA forum discussion, post 24](https://forums.developer.nvidia.com/t/dgx-spark-fans-stop-when-the-screen-goes-dark-or-running-from-ssh-box-gets-too-hot-to-touch-fire-hazard/378945/24) | Original report in post 22 NVIDIA response in post 24 old-EC idle defect and workaround |
 
 ## Clock cap
 
@@ -52,7 +52,7 @@ downloaded the right file. fwupd still checks the image's signature against
 your device when it installs it.
 
 The [fwupd 2.0.20 command source](https://raw.githubusercontent.com/fwupd/fwupd/2.0.20/src/fu-util.c)
-confirms `local-install FILE [DEVICE-ID|GUID]`.
+confirms `local-install FILE [DEVICE-ID|GUID]`
 
 | EC | Official capsule | SHA-256 |
 | --- | --- | --- |

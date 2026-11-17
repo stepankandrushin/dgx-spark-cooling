@@ -27,7 +27,7 @@ nozzle and Generic ABS, with these settings:
 | --- | --- | --- |
 | Layer height | 0.20 mm | 0.20 mm |
 | Wall loops | 2 | 2 |
-| Infill | 15%, grid | 15%, grid |
+| Infill | 15% grid | 15% grid |
 | Supports enabled | No | No |
 | Brim | Outer, 5 mm | Outer, 10 mm |
 | Nozzle setpoint | 270 °C | 270 °C |
