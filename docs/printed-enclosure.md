@@ -7,8 +7,9 @@ rails along its edges, so the air goes above, between and below the machines,
 and if you've [removed the bottom covers](bottom-cover.md), along the undersides
 too.
 
-We ran two Sparks in it, with both fans, on NVIDIA's stock automatic fan curve,
-against two Sparks outside it that hold the [9,000 RPM fan floor](fan-floor.md).
+We ran two Sparks in it, with both fans - two ARCTIC P12 Pro PST - on NVIDIA's
+stock automatic fan curve, against two Sparks outside it that hold the
+[9,000 RPM fan floor](fan-floor.md).
 Under the same long inference load the two in the enclosure stayed within a few
 degrees of the floored pair, with cooler NVMe drives and no throttling. But I
 have to say right away - this test changed two things at once, the enclosure

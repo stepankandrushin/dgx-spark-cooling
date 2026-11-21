@@ -1,5 +1,5 @@
 spark,role,placement,ec,fan_control,fan1_rpm_idle,fan1_rpm_decode,fan1_rpm_prefill,fan1_rpm_fio_peak,cpu_c_idle,cpu_c_load_avg,cpu_c_load_max,cpu_c_fio_max,nvme_c_idle,nvme_c_load_avg,nvme_c_load_max,nvme_c_fio_max,gpu_c_idle,gpu_c_load_avg,gpu_c_max,tunc_c_max,gpu_w_decode,gpu_w_prefill,pair_decode_tokens_per_second_first_10min,pair_decode_tokens_per_second_last_10min,pair_prefill_prompt_tokens_per_second_start,pair_prefill_prompt_tokens_per_second_end
 A,head,outside the enclosure,3.5.8,9000 floor,9000,9000,9000,9000,41.2,76.1,85.5,92.1,38.9,52.3,53.9,67.8,39.0,61.6,67,72.7,27.5,38.9,70.1,71.1,1680,1740
 B,worker,outside the enclosure,3.5.8,9000 floor,9000,9000,9000,9000,39.9,69.6,79.7,81.9,37.9,49.1,50.9,65.8,40.0,58.2,64,64.8,26.3,37.5,70.1,71.1,1680,1740
-C,head,in the enclosure,3.13.7,stock automatic,1840,2364,2369,2946,39.7,75.7,89.1,87.7,37.1,48.5,49.9,61.9,39.1,60.8,66,70.2,27.6,39.4,70.8,71.0,1650,1709
-D,worker,in the enclosure,3.13.7,stock automatic,1882,1901,1906,2403,42.2,72.5,77.4,81.8,37.2,47.6,49.9,62.9,40.4,60.5,68,69.8,26.2,37.5,70.8,71.0,1650,1709
+C,head,in the enclosure with two ARCTIC P12 Pro PST,3.13.7,stock automatic,1840,2364,2369,2946,39.7,75.7,89.1,87.7,37.1,48.5,49.9,61.9,39.1,60.8,66,70.2,27.6,39.4,70.8,71.0,1650,1709
+D,worker,in the enclosure with two ARCTIC P12 Pro PST,3.13.7,stock automatic,1882,1901,1906,2403,42.2,72.5,77.4,81.8,37.2,47.6,49.9,62.9,40.4,60.5,68,69.8,26.2,37.5,70.8,71.0,1650,1709

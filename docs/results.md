@@ -95,8 +95,9 @@ Four Sparks, none of which was in the tests above, ran the same load at the same
 time, as two pairs:
 
 - **In the enclosure** - two Sparks in the [printed enclosure](printed-enclosure.md)
-  with both of its fans, on NVIDIA's current stock EC firmware 3.13.7 with its
-  automatic fan curve. No fan driver, no floor and no idle-fan workaround.
+  with both of its fans, two ARCTIC P12 Pro PST, on NVIDIA's current stock EC
+  firmware 3.13.7 with its automatic fan curve. No fan driver, no floor and no
+  idle-fan workaround.
 - **With the floor** - two Sparks outside the enclosure, on EC 3.5.8 with the
   9,000 RPM floor.
 
