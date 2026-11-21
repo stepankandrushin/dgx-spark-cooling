@@ -6,8 +6,13 @@ The cap closes the other end and can take a second fan. Each Spark sits on rails
 along its edges, so air passes above, between and below the machines. That
 includes the undersides, if you've [removed the bottom covers](bottom-cover.md).
 
-We haven't measured this enclosure on its own, so there's no before/after number
-for it yet.
+We ran two Sparks in it, with both fans, on NVIDIA's stock automatic fan curve,
+against two Sparks outside it that hold the [9,000 RPM fan floor](fan-floor.md).
+Under the same long inference load the two in the enclosure stayed within a few
+degrees of the floored pair, with cooler NVMe drives and no throttling. That
+test changed the enclosure and the fan control at once, so it isn't a
+before/after number for the enclosure alone:
+[results](results.md#printed-enclosure-against-the-fan-floor).
 
 ![Two-piece ABS enclosure](../3d-print/DGX_Spark_Duo_photo_02.jpg)
 
@@ -84,8 +89,10 @@ python3 scripts/thermal-sample.py --duration 900 --interval 2 > measurements/enc
 
 If temperatures are still changing at the end, run longer. Also listen to the
 noise and check that both machines behave normally at idle. Our
-[fan-floor result](results.md) is about the Spark's internal fans, not this
-enclosure.
+[enclosure test](results.md#printed-enclosure-against-the-fan-floor) changed the
+fan control along with the enclosure, so it doesn't replace this comparison. The
+[fan-floor sweep](results.md#fan-floor) is about the Spark's internal fans, not
+this enclosure.
 
 ## Take it apart
 

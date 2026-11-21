@@ -42,7 +42,11 @@ edges, so their open undersides stay in the airflow. A 120 mm fan at one end
 moves air through the gaps past both machines, and the cap at the other end can
 hold a second fan. The fans need their own 12 V supply.
 
-We haven't measured this one on its own either. Guide: [printed enclosure](docs/printed-enclosure.md).
+We tested two Sparks in it on NVIDIA's stock fan curve against two outside it
+with the 9,000 RPM fan floor. Under the same long load the two in the enclosure
+stayed within a few degrees of the others, with cooler NVMe drives and no
+throttling. That test changed the enclosure and the fan control together, so it
+isn't a measure of the enclosure alone. Guide: [printed enclosure](docs/printed-enclosure.md).
 
 ### 3. Cap the GPU clock at 2,200 MHz
 
@@ -71,12 +75,14 @@ workaround. Guide: [fan floor](docs/fan-floor.md).
 
 ### How to read these numbers
 
-The clock-cap and fan-floor numbers come from two separate experiments, and the
-fan test ran with the cap already on. **Don't add them together** into one
-stock-to-final figure. All the numbers come from four Sparks. Six now run the
-same clock and fan settings, but we haven't measured the other two. None of the
-four was throttling or shutting down before the changes. We wanted them cooler,
-not to fix a failure. Full tables, method and what didn't work:
+The clock-cap, fan-floor and enclosure numbers come from three separate
+experiments, and the fan and enclosure tests ran with the cap already on.
+**Don't add them together** into one stock-to-final figure. The clock-cap and
+fan-floor numbers come from four Sparks, the enclosure test from four others.
+All eight now run the clock cap and six of them the fan floor. The two in the
+enclosure keep NVIDIA's stock fan control. None of the first four was
+throttling or shutting down before the changes. We wanted them cooler, not to
+fix a failure. Full tables, method and what didn't work:
 [results](docs/results.md).
 
 ## Trying it on your own Spark

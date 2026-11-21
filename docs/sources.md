@@ -62,6 +62,6 @@ confirms `local-install FILE [DEVICE-ID|GUID]`
 ## Our measurements
 
 The [result tables](results.md) and the [CSV files](../results/) are summaries
-copied from our records of the clock comparison, the fan sweep and the reboot
-checks. They contain no machine names, serial numbers, private addresses or
-service endpoints. The raw sample logs aren't published.
+copied from our records of the clock comparison, the fan sweep, the enclosure
+test and the reboot checks. They contain no machine names, serial numbers,
+private addresses or service endpoints. The raw sample logs aren't published.

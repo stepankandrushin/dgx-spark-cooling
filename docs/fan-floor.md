@@ -10,7 +10,10 @@ already on. It's also by far the most work. The driver works only with an older
 EC firmware, 3.5.8 so you have to downgrade. That firmware has a bug that can
 stop both fans at idle, so you also need a workaround for it. Read the whole
 guide before you change any firmware. If you'd rather stay on current firmware,
-use the [clock cap](gpu-clock-cap.md) and leave the fans on automatic.
+use the [clock cap](gpu-clock-cap.md) and leave the fans on automatic. In our
+[enclosure test](results.md#printed-enclosure-against-the-fan-floor), two Sparks
+in the printed enclosure on current firmware and automatic fans stayed within a
+few degrees of two floored ones under the same load.
 
 ## What it does and what it changed for us
 

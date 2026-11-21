@@ -1,25 +1,24 @@
 # Measurements and limitations
 
-These numbers are copied from our original experiment records. They come from
-four NVIDIA DGX Sparks serving DeepSeek inference. Six machines now run the same
-clock and fan settings, but the other two weren't part of these tests. The raw
-sample logs aren't published.
+These numbers are copied from our original experiment records. The clock-cap
+and fan-floor tests ran on four NVIDIA DGX Sparks serving DeepSeek inference,
+the enclosure test on four other Sparks serving GLM. Eight machines now run the
+clock cap and six of them the fan floor. The raw sample logs aren't published.
 
-There are two experiments: the GPU clock cap and the internal fan floor. They
-were run separately, so don't add their results together.
+There are three experiments: the GPU clock cap, the internal fan floor, and the
+printed enclosure on stock fans against the fan floor. They were run
+separately, so don't add their results together.
 
-## Bottom cover, external cooler and printed enclosure
+## Bottom cover and external cooler
 
-We have no measurements for these three. We never ran a before/after test for
-removing the cover, for the small external cooler or for the ABS enclosure. Our
-records don't say which physical setup each machine had during the two
-experiments below either. So none of the numbers here belong to the cover or
-the enclosure. The software comparisons also aren't a stock-case versus
-printed-case test.
+We have no measurements for these two. We never ran a before/after test for
+removing the cover or for the small external cooler. Our records don't say
+which machines had their covers off in any of the experiments below. So none
+of the numbers here belong to the cover or the cooler. The clock and fan tests
+don't record where the machines stood either, so they aren't an enclosure test.
 
-To measure them yourself, see the
-[bottom-cover](bottom-cover.md#measure-the-difference) and
-[enclosure](printed-enclosure.md#measure-the-difference) guides.
+To measure the cover yourself, see the
+[bottom-cover guide](bottom-cover.md#measure-the-difference).
 
 ## GPU clock cap
 
@@ -86,6 +85,93 @@ How far these numbers go:
   much the fans use.
 - We didn't measure noise or drive lifespan.
 
+## Printed enclosure against the fan floor
+
+Four Sparks, none of them in the tests above, ran the same load at the same
+time as two pairs:
+
+- **In the enclosure:** two Sparks in the [printed enclosure](printed-enclosure.md)
+  with both of its fans, on NVIDIA's current stock EC firmware 3.13.7 and its
+  automatic fan curve. No fan driver, no floor and no idle-fan workaround.
+- **With the floor:** two Sparks outside the enclosure, on EC 3.5.8 with the
+  9,000 RPM floor.
+
+All four had the 2,200 MHz GPU cap and the same 4 TB Samsung NVMe drive. Our
+records don't say whether the bottom covers were on or off, how fast the
+enclosure's fans ran, or how the two outside it stood beyond not being in it.
+
+The load was GLM-5.3-Flash FP4 on vLLM. It doesn't fit in one Spark, so each
+pair served it tensor-parallel over a direct 200 Gbit/s ConnectX-7 cable. Both
+pairs got the same requests at the same time:
+
+1. About ten minutes idle with the model loaded. The first two minutes don't
+   count.
+2. 25 minutes of decode: four streams per pair, prose, code and JSON prompts,
+   up to 1,500 output tokens each.
+3. 15 minutes of prefill: four streams per pair, each a unique prompt of about
+   18,000 tokens that the prefix cache couldn't reuse, up to 256 output tokens.
+4. With the prefill load still on, fio on all four drives at once: 150 s of
+   sequential writes, then 150 s of sequential reads, 1 MiB blocks at queue
+   depth 32 with direct I/O, into a 32 GiB scratch file. Each drive took about
+   1.35 TB of writes.
+
+Each Spark logged its sensors every 10 s. The load columns cover decode and
+prefill, from five minutes after the load started until fio. The fio column is
+the peak during fio on its own. CPU is the hottest CPU-cluster zone, NVMe the
+drive's composite temperature. Fan 2 stayed within 1% of fan 1 on the floor and
+within 2% on stock. The head node of each pair also runs vLLM's API server and
+scheduler. We logged the room only through the UPS's own temperature sensor,
+which read 25.8–26.3 °C through the run.
+
+| Spark | Setup | Fan 1 RPM idle / decode / prefill / fio peak | CPU °C idle / load avg / load max / fio max | NVMe °C idle / load avg / load max / fio max | GPU °C idle / load avg / max |
+| --- | --- | --- | --- | --- | --- |
+| A head | floor | 9,000 / 9,000 / 9,000 / 9,000 | 41.2 / 76.1 / 85.5 / 92.1 | 38.9 / 52.3 / 53.9 / 67.8 | 39.0 / 61.6 / 67 |
+| B worker | floor | 9,000 / 9,000 / 9,000 / 9,000 | 39.9 / 69.6 / 79.7 / 81.9 | 37.9 / 49.1 / 50.9 / 65.8 | 40.0 / 58.2 / 64 |
+| C head | enclosure, stock | 1,840 / 2,364 / 2,369 / 2,946 | 39.7 / 75.7 / 89.1 / 87.7 | 37.1 / 48.5 / 49.9 / 61.9 | 39.1 / 60.8 / 66 |
+| D worker | enclosure, stock | 1,882 / 1,901 / 1,906 / 2,403 | 42.2 / 72.5 / 77.4 / 81.8 | 37.2 / 47.6 / 49.9 / 62.9 | 40.4 / 60.5 / 68 |
+
+Decode with four streams ran 70.1 tok/s in the floored pair's first ten minutes
+and 71.1 in its last, 70.8 and 71.0 in the enclosure pair. Prefill went from
+1,680 to 1,740 prompt tok/s on the floored pair and from 1,650 to 1,709 on the
+enclosure pair, 1,687 on both during fio. No request failed. The
+[CSV](../results/enclosure-vs-fan-floor.csv) also has TUNC and GPU power.
+
+What it showed:
+
+- **In the enclosure, the stock curve was enough for this load.** Head against
+  head and worker against worker, the enclosure pair's CPU and GPU load
+  averages came within 3 °C of the floored pair's, and its NVMe load averages
+  were 1.5 and 3.8 °C cooler. Its fans ran 1,900–2,370 RPM under inference and
+  2,400–2,950 during fio, far below the floor's 9,000
+- **Nothing throttled.** GPU clock event reasons stayed clear, and the SM clock
+  never fell below 2,171 MHz under load against the 2,200 cap. The CPU cooling
+  devices never left state 0 and CPU frequency limits stayed at their maximum.
+  fio wrote 9.1–9.3 GiB/s and read 13.5–13.6 GiB/s on every drive, the same on
+  all four. Throughput was the same at the start and the end.
+- **The CPU of the head node is the tightest margin.** In the enclosure it
+  peaked at 89.1 °C under load. It spent 17 of its 267 samples under load, fio
+  included, at 85 °C or more and never reached 90 °C. The floored head peaked
+  at 92.1 °C during fio. It spent 3 of 237 samples at 85 °C or more, two of them
+  at 90 °C or more during fio. Our monitoring warns at
+  99 °C, and the ACPI trip point is 104.8 °C.
+- **The other margins are wide.** NVMe peaked at 63 °C in the enclosure and
+  68 °C on the floor, against the drive's own 83 °C warning and 85 °C critical
+  thresholds. GPU peaked at 68 °C against a T.Limit of about 96 °C.
+- **One fan reading of zero.** One 10 s sample on the floored head read fan 1
+  at 0 RPM between two readings of 9,000 RPM. No temperature moved, and the fan
+  status read 9,000 and 8,910 RPM shortly after. The test's safety rule still stopped
+  that pair's load, which restarted about 2.5 minutes later. So the floored
+  pair ran 20 minutes of decode against 25 for the enclosure pair, and its load
+  windows start at the restart.
+
+**What this doesn't show.** The two pairs differ in two things at once. One had
+the enclosure with NVIDIA's stock firmware and fan curve, the other no enclosure
+with the old firmware and the floor. So the result belongs to that combination.
+It isn't the effect of the enclosure alone, because the same machines weren't
+run outside it, and it isn't the effect of the fan setting alone. The pairs are
+also different machines, it was one run, and room temperature was logged, not
+controlled.
+
 ## Repeat the experiment
 
 1. Write down the number of machines, firmware, kernel, model, quantization,
@@ -112,9 +198,10 @@ How far these numbers go:
 
 ## What these results don't show
 
-- A combined improvement from adding the two experiments together.
+- A combined improvement from adding the experiments together.
 - That our machines overheated before, or that the clock cap is free.
-- Any measured benefit from removing the cover, the external cooler or the
-  printed enclosure.
+- Any measured benefit from removing the cover or from the external cooler.
+- The effect of the printed enclosure alone, or of the stock fan curve alone:
+  the enclosure test changed both at once.
 - That faster fans increase throughput, make SSDs last longer or are quiet.
 - That the older EC is safe to run without its idle-fan workaround.
